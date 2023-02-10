@@ -30,7 +30,8 @@ RDimensions::RDimensions(const Rectangle& r) :
   m_nWidth(r.m_nWidth),
   m_nHeight(r.m_nHeight),
   m_nMinDim(r.m_nMinDim),
-  m_nArea(r.m_nArea) {
+  m_nArea(r.m_nArea),
+  m_nFixX(r.m_nFixX) {
 }
 
 RDimensions::RDimensions() :
@@ -38,7 +39,8 @@ RDimensions::RDimensions() :
   m_nWidth(0),
   m_nHeight(0),
   m_nMinDim(0),
-  m_nArea(0) {
+  m_nArea(0),
+  m_nFixX(0) {
 }
 
 RDimensions::RDimensions(const RDimensions& d) :
@@ -46,7 +48,8 @@ RDimensions::RDimensions(const RDimensions& d) :
   m_nWidth(d.m_nWidth),
   m_nHeight(d.m_nHeight),
   m_nMinDim(d.m_nMinDim),
-  m_nArea(d.m_nArea) {
+  m_nArea(d.m_nArea),
+  m_nFixX(d.m_nFixX) {
 }
 
 RDimensions::RDimensions(const Dimensions& d) :
@@ -54,7 +57,8 @@ RDimensions::RDimensions(const Dimensions& d) :
   m_nWidth(d.m_nWidth),
   m_nHeight(d.m_nHeight),
   m_nMinDim(d.m_nMinDim),
-  m_nArea(d.m_nArea) {
+  m_nArea(d.m_nArea),
+  m_nFixX(0) {
 }
 
 RDimensions::RDimensions(const BoxDimensions& b) :
@@ -62,7 +66,8 @@ RDimensions::RDimensions(const BoxDimensions& b) :
   m_nWidth(b.m_nWidth),
   m_nHeight(b.m_nHeight),
   m_nMinDim(std::min(m_nWidth, m_nHeight)),
-  m_nArea(b.m_nArea) {
+  m_nArea(b.m_nArea),
+  m_nFixX(0) {
 }
 
 const RDimensions& RDimensions::operator=(const RDimensions& d) {
@@ -71,6 +76,7 @@ const RDimensions& RDimensions::operator=(const RDimensions& d) {
   m_nHeight = d.m_nHeight;
   m_nMinDim = d.m_nMinDim;
   m_nArea = d.m_nArea;
+  m_nFixX = d.m_nFixX;
   return(*this);
 }
 
@@ -79,7 +85,8 @@ RDimensions::RDimensions(URational nWidth, URational nHeight) :
   m_nWidth(nWidth),
   m_nHeight(nHeight),
   m_nMinDim(std::min(m_nWidth, m_nHeight)),
-  m_nArea(nWidth * nHeight) {
+  m_nArea(nWidth * nHeight),
+  m_nFixX(0) {
 }
 
 RDimensions::RDimensions(const Component* c) :
@@ -87,7 +94,8 @@ RDimensions::RDimensions(const Component* c) :
   m_nWidth(c->m_Dims.m_nWidth),
   m_nHeight(c->m_Dims.m_nHeight),
   m_nMinDim(c->m_Dims.m_nMinDim),
-  m_nArea(c->m_Dims.m_nArea) {
+  m_nArea(c->m_Dims.m_nArea),
+  m_nFixX(0) {
 }
 
 RDimensions::~RDimensions() {

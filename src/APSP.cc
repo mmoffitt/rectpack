@@ -44,11 +44,13 @@ void APSP::initialize(size_t nRectangles) {
    * of negative values anyway.
    */
 
-  resize(nRectangles,
-	 std::vector<Int>(nRectangles, 
+  resize(nRectangles + 1,
+	 std::vector<Int>(nRectangles + 1, 
 			  std::numeric_limits<Int>::max()));
-  for(size_t i = 0; i < nRectangles; ++i)
+  for(size_t i = 0; i < nRectangles + 1; ++i)
     (*this)[i][i] = 0;
+  for(size_t i = 0; i < nRectangles + 1; ++i)
+    (*this)[nRectangles][i] = 0;
 }
 
 void APSP::floydWarshall() {

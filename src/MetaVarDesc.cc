@@ -46,3 +46,8 @@ std::ostream& operator<<(std::ostream& os, const MetaVarDesc& rhs) {
 void MetaVarDesc::print() const {
   std::cout << *this << std::flush;
 }
+
+bool MetaVarDesc::isNeeded() const {
+  return !(m_pRect1->m_nFixX + m_pRect1->m_nWidth <= m_pRect2->m_nFixX ||
+           m_pRect2->m_nFixX + m_pRect2->m_nWidth <= m_pRect1->m_nFixX);
+}

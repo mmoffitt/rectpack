@@ -84,9 +84,15 @@ class MetaCSP : public Packer {
   TimeSpec& timeDomination();
   void placeUnitRectangles();
   void initVariableDescriptions();
-  virtual void packAux();
+  virtual bool packAux();
   virtual void orientation();
   virtual void orientationAux(size_t nRectangle);
+
+  /**
+   * Returns the height of the current partial solution.
+   */
+
+  Int calcHeight(MetaFrame* pCurrent) const;
 
   /**
    * Extracts the x- and y-coordinates of the rectangles from the APSP
@@ -102,7 +108,7 @@ class MetaCSP : public Packer {
    */
   
   void printRecentBest() const;
-  void branchOn(MetaFrame::VarIter& i);
+  bool branchOn(MetaFrame::VarIter& i);
 
   /**
    * If the instance were symmetric, one quick way to break the
@@ -142,7 +148,7 @@ class MetaCSP : public Packer {
 
   void valueOrdering(MetaFrame::VarIter& i, std::vector<int>& v) const;
   bool computeAPSP();
-  void semanticBranching(MetaFrame::VarIter& v, int n);
+  void semanticBranching(const MetaVarDesc* first, int n);
 
   /**
    * Performs clique detection to derive a minimum width.

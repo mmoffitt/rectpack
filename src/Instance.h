@@ -39,6 +39,7 @@ class Instance : public std::deque<RDimensions> {
   Instance(const Instance& i);
   const Instance& operator=(const Instance& i);
   ~Instance();
+  void parseInstanceFile(const std::string& sFile);
   void parseInstance(const std::string& s);
   void parseInstance(std::deque<UInt>& v);
   void parseInstance(std::deque<UInt>& v,

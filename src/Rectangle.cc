@@ -61,6 +61,7 @@ void Rectangle::initialize(const RDimensions& d) {
   else
     std::cout << "Rectangle::size(...): Dimensions should be integers." << std::endl;
   m_bRotated = false;
+  m_nFixX = d.m_nFixX.get_ui();
 }
 
 void Rectangle::print() const {
@@ -333,7 +334,7 @@ const UInt& Rectangle::height() const {
 }
 
 bool Rectangle::unit() const {
-  return(m_nWidth == 1 && m_nHeight == 1);
+  return(m_nWidth == 1 && m_nHeight == 1 && false);
 }
 
 void Rectangle::swap() {

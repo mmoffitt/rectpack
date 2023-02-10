@@ -86,7 +86,10 @@ bool ConflictSums::packInterval(RectPtrArray::iterator i,
 				UInt& nDeepest) {
   Rectangle* r(*i);
   nDeepest = std::max(nDeepest, r->m_nID);
-  const DomConfig* dc(&m_vDomains.get(r)[0]); // Change 0 to note dominance rules.
+  Compulsory compulsory;
+  compulsory.initialize(r->m_nFixX, r->m_nFixX, r);
+  std::vector<Compulsory> domain = {compulsory};
+  const DomConfig* dc(&domain);
   for(DomConfig::const_iterator j = dc->begin(); j != dc->end(); ++j) {
 #ifdef DEBUG
     if(r->m_bFixed && !j->overlaps(r->m_nFixX))

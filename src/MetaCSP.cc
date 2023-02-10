@@ -50,7 +50,7 @@ bool MetaCSP::pack() {
   return(true);
 }
 
-void MetaCSP::packAux() {
+bool MetaCSP::packAux() {
 
   /**
    * If we found a valid solution, then see if we can update our
@@ -66,7 +66,7 @@ void MetaCSP::packAux() {
 
     if(updateSolution() && !m_pParams->m_bQuiet)
       printRecentBest();
-    return;
+    return(true);
   }
 
   /**
@@ -74,7 +74,7 @@ void MetaCSP::packAux() {
    */
 
   MetaFrame::VarIter i = nextVariable();
-  branchOn(i);
+  return(branchOn(i));
 }
 
 void MetaCSP::printRecentBest() const {
@@ -105,7 +105,8 @@ void MetaCSP::printRecentBest() const {
   std::cout << std::endl << std::endl;
 }
 
-void MetaCSP::branchOn(MetaFrame::VarIter& i) {
+bool MetaCSP::branchOn(MetaFrame::VarIter& i) {
+  auto first = i->first;
 
   /**
    * Dynamically break symmetry, if applicable.
@@ -141,7 +142,7 @@ void MetaCSP::branchOn(MetaFrame::VarIter& i) {
 
     m_vStack.push_back(MetaFrame(m_vStack.back()));
     MetaFrame* pCurrent = &m_vStack.back();
-    pCurrent->assign(i->first, (MetaDomain::ValueT) *j);
+    pCurrent->assign(first, (MetaDomain::ValueT) *j);
 
     /**
      * Assert our constraint into our APSP and check it for negative
@@ -149,7 +150,7 @@ void MetaCSP::branchOn(MetaFrame::VarIter& i) {
      */
 
     if(*j == MetaDomain::ABOVE || *j == MetaDomain::BELOW)
-      pCurrent->m_vYMatrix.assign(i->first, *j);
+      pCurrent->m_vYMatrix.assign(first, *j);
 
     /**
      * @TODO Optimizations may be performed here, by focusing on
@@ -158,7 +159,7 @@ void MetaCSP::branchOn(MetaFrame::VarIter& i) {
      */
 
     else
-      pCurrent->m_vXMatrix.assign(i->first, *j);
+      pCurrent->m_vXMatrix.assign(first, *j);
 
     if(computeAPSP()) {
 
@@ -192,7 +193,7 @@ void MetaCSP::branchOn(MetaFrame::VarIter& i) {
 	   */
 	  
 	  if(pCurrent->forwardCheckBounds(m_Best))
-	    packAux();
+	    if (packAux()) return(true);
     }
     
     /**
@@ -200,16 +201,17 @@ void MetaCSP::branchOn(MetaFrame::VarIter& i) {
      */
     
     m_vStack.pop_back();
-    semanticBranching(i, *j);
+    semanticBranching(first, *j);
   }
+  return(false);
 }
 
-void MetaCSP::semanticBranching(MetaFrame::VarIter& v, int n) {
+void MetaCSP::semanticBranching(const MetaVarDesc* first, int n) {
   MetaFrame* pCurrent = &m_vStack.back();
   if(n == MetaDomain::LEFTOF || n == MetaDomain::RIGHTOF)
-    pCurrent->m_vXMatrix.negate(v->first, n);
+    pCurrent->m_vXMatrix.negate(first, n);
   else
-    pCurrent->m_vYMatrix.negate(v->first, n);
+    pCurrent->m_vYMatrix.negate(first, n);
 }
 
 bool MetaCSP::computeAPSP() {
@@ -236,6 +238,13 @@ bool MetaCSP::updateSolution() {
    * check).
    */
 
+  m_Box.initialize(m_pParams->m_Box.m_nWidth.get_ui(),
+		   calcHeight(&m_vStack.back()));
+  if(m_Box.m_nHeight < m_Best.back().m_nHeight) {
+    m_Best.set(m_Box);
+    return(true);
+  }
+/*
   m_Box.initialize(m_vStack.back().m_nMinWidth,
 		   m_vStack.back().m_nMinHeight);
   if(m_Box.m_nArea < m_Best.m_nArea) {
@@ -247,6 +256,7 @@ bool MetaCSP::updateSolution() {
     m_Best.push_back(m_Box);
     return(true);
   }
+*/
   else
     return(false);
 }
@@ -441,6 +451,7 @@ bool MetaCSP::horizontal(const Rectangle* r1,
   if(r2->m_nID > r1->m_nID)
     std::swap(r1, r2);
   const MetaVarDesc* v(&m_vVariableDescs[r1->m_nID][r2->m_nID]);
+  if (!v->isNeeded()) return(false);
   MetaFrame::ConstVarIter i, k;
   i = m_vStack.back().m_Assigned.find(v);
   if(i != m_vStack.back().m_Assigned.end())
@@ -458,6 +469,7 @@ bool MetaCSP::vertical(const Rectangle* r1,
   if(r2->m_nID > r1->m_nID)
     std::swap(r1, r2);
   const MetaVarDesc* v(&m_vVariableDescs[r1->m_nID][r2->m_nID]);
+  if (!v->isNeeded()) return(false);
   MetaFrame::ConstVarIter i, k;
   i = m_vStack.back().m_Assigned.find(v);
   if(i != m_vStack.back().m_Assigned.end())
@@ -712,6 +724,14 @@ void MetaCSP::get2(Placements& v) const {
   }
 }
 
+Int MetaCSP::calcHeight(MetaFrame* pCurrent) const {
+  Int height = 0;
+  for(size_t i = 0; i < m_vRects.size(); ++i)
+      height = std::max(height, (Int)m_vRects[i].m_nHeight +
+          -pCurrent->m_vYMatrix[m_vRects.size()][i]);
+  return(height);
+}
+
 void MetaCSP::get(Placements& v) const {
 
   /**
@@ -737,7 +757,7 @@ void MetaCSP::get(Placements& v) const {
 		 [pDesc->m_pRect2->m_nID]);
     }
   for(size_t i = 0; i < vX.size(); ++i)
-    vX[i] = -vX[i];
+    vX[i] = m_vRects[i].m_nFixX;
 
   /**
    * Now assign the heights.
@@ -757,7 +777,7 @@ void MetaCSP::get(Placements& v) const {
 		 [pDesc->m_pRect2->m_nID]);
     }
   for(size_t i = 0; i < vY.size(); ++i)
-    vY[i] = -vY[i];
+    vY[i] = -pCurrent->m_vYMatrix[m_vRects.size()][i];
 
   /**
    * Construct the placement return vector.

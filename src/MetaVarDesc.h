@@ -33,6 +33,7 @@ class MetaVarDesc {
   virtual ~MetaVarDesc();
   void initialize(const Rectangle* r1, const Rectangle* r2);
   void print() const;
+  bool isNeeded() const;
   /**
    * The variable is defined by the two rectangle constraints that it
    * represents.

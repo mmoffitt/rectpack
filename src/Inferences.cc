@@ -769,7 +769,7 @@ void Inferences::print2() const {
   std::cout << "Adjacency Graphs:" << std::endl;
   UInt nMaxX = 0;
   boost::graph_traits<Adjacency>::vertex_iterator vi, vi_end;
-  for(tie(vi, vi_end) = boost::vertices(m_X); vi != vi_end; ++vi)
+  for(boost::tie(vi, vi_end) = boost::vertices(m_X); vi != vi_end; ++vi)
     nMaxX = std::max(nMaxX, (UInt) boost::out_degree(*vi, m_X));
   UInt nMaxXWidth = nMaxX * 5 + nMaxX - 1 + 2;
   t1 = 8 + nMaxXWidth;
@@ -881,7 +881,7 @@ void Inferences::print() const {
   std::cout << "Adjacency Graphs:" << std::endl;
   UInt nMaxX = 0;
   boost::graph_traits<Adjacency>::vertex_iterator vi, vi_end;
-  for(tie(vi, vi_end) = boost::vertices(m_X); vi != vi_end; ++vi)
+  for(boost::tie(vi, vi_end) = boost::vertices(m_X); vi != vi_end; ++vi)
     nMaxX = std::max(nMaxX, (UInt) boost::out_degree(*vi, m_X));
   UInt nMaxXWidth = nMaxX * 2 + nMaxX - 1 + 2;
   t1 = 5 + nMaxXWidth;

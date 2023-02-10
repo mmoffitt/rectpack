@@ -750,7 +750,7 @@ void Parameters::parseAux(boost::program_options::options_description& desc,
   parseBox(m_sBox);
   parseFix(m_sFix);
   parseGeometry(m_sGeometry);
-  m_vInstance.parseInstance(m_vInstance.m_sInstance);
+  m_vInstance.parseInstanceFile(m_vInstance.m_sInstance);
   if(m_nJValue > -1.0) m_vInstance.rewriteJValue(m_nJValue);
   if(m_nOrdering == 8 && m_nWeakening < 3) {
     if(m_vInstance.m_bUnoriented)

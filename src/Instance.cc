@@ -28,11 +28,13 @@
 #include "RDimensions.h"
 #include "Rational.h"
 #include <boost/bind.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/math/common_factor.hpp> 
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
+#include <fstream>
 #include <iostream>
 
 Instance::Instance() {
@@ -90,6 +92,38 @@ const Instance& Instance::operator=(const Instance& i) {
 }
 
 Instance::~Instance() {
+}
+
+void Instance::parseInstanceFile(const std::string& sFile) {
+  clear();
+  bool bParsed(false);
+  RDimensions d;
+
+  char pBuffer[1024];
+  std::ifstream ifs(sFile.c_str());
+  while(ifs.good()) {
+    ifs.getline(pBuffer, 1024);
+    if(!bParsed) {
+      bParsed = true;
+      continue;
+    }
+    std::string s(pBuffer);
+    if (s.empty()) break;
+    std::vector<std::string> parts;
+    boost::split(parts, s, boost::is_any_of(","));
+    d.m_nHeight = stoi(parts[4]);
+    d.m_nWidth = stoi(parts[2]) - stoi(parts[1]) + 1;
+    d.m_nFixX = stoi(parts[1]);
+    push_back(d);
+  }
+
+  if(!bParsed) {
+    std::cout << "I can't parse your instance file: " << sFile << std::endl;
+    exit(0);
+  }
+  else
+    for(iterator i = begin(); i != end(); ++i)
+      i->setArea();
 }
 
 void Instance::parseInstance(const std::string& s) {

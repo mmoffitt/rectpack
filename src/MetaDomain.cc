@@ -30,8 +30,10 @@ void MetaDomain::initialize() {
   clear();
   insert(ABOVE);
   insert(BELOW);
+/*
   insert(LEFTOF);
   insert(RIGHTOF);
+*/
 }
 
 bool MetaDomain::contains(ValueT n) const {

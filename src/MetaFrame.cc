@@ -21,7 +21,11 @@
 #include "Rectangle.h"
 #include <limits>
 
-MetaFrame::MetaFrame() {
+MetaFrame::MetaFrame() :
+  m_nMinWidth(0),
+  m_nMinHeight(0),
+  m_nMaxWidth(std::numeric_limits<UInt>::max()),
+  m_nMaxHeight(std::numeric_limits<UInt>::max()) {
 }
 
 MetaFrame::MetaFrame(const MetaFrame& src) :
@@ -43,7 +47,8 @@ void MetaFrame::initialize(const std::vector<std::vector<MetaVarDesc> >& vVars) 
   m_vYMatrix.initialize(vVars.size());
   for(size_t i = 0; i < vVars.size(); ++i)
     for(size_t j = 0; j < i; ++j)
-      m_Unassigned[&vVars[i][j]].initialize(&vVars[i][j]);
+      if (vVars[i][j].isNeeded())
+        m_Unassigned[&vVars[i][j]].initialize(&vVars[i][j]);
 }
 
 MetaVariable* MetaFrame::assign(const MetaVarDesc* pDesc,

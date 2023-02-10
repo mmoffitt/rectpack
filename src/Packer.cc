@@ -101,7 +101,7 @@ void Packer::initialize(const HeapBox* pBox) {
    */
 
   m_bInstanceRotated = false;
-  if(m_bYSmallerThanX && (m_Box.m_nHeight > m_Box.m_nWidth)) {
+  if(m_bYSmallerThanX && (m_Box.m_nHeight > m_Box.m_nWidth) && false) {
     m_Box.rotate();
     if(!m_pParams->m_vInstance.m_bDiagonalSymmetry)
       m_vRects.rotate();

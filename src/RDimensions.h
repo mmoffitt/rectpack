@@ -123,6 +123,7 @@ class RDimensions {
   URational m_nHeight;
   URational m_nMinDim;
   URational m_nArea;
+  URational m_nFixX;
 };
 
 std::ostream& operator<<(std::ostream& os, const RDimensions& d);

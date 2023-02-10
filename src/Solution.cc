@@ -19,7 +19,7 @@
 
 #include "Solution.h"
 
-Solution::Solution() {
+Solution::Solution() : m_nArea(std::numeric_limits<UInt>::max()) {
 }
 
 Solution::~Solution() {
