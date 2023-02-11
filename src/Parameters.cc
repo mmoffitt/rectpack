@@ -751,6 +751,9 @@ void Parameters::parseAux(boost::program_options::options_description& desc,
   parseFix(m_sFix);
   parseGeometry(m_sGeometry);
   m_vInstance.parseInstanceFile(m_vInstance.m_sInstance);
+  m_Box.m_nWidth = 0;
+  for(auto i : m_vInstance)
+    m_Box.m_nWidth = std::max(m_Box.m_nWidth, i.m_nFixX + i.m_nWidth);
   if(m_nJValue > -1.0) m_vInstance.rewriteJValue(m_nJValue);
   if(m_nOrdering == 8 && m_nWeakening < 3) {
     if(m_vInstance.m_bUnoriented)
