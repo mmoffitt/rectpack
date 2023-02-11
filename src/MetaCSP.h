@@ -147,8 +147,10 @@ class MetaCSP : public Packer {
    */
 
   void valueOrdering(MetaFrame::VarIter& i, std::vector<int>& v) const;
-  bool computeAPSP();
-  void semanticBranching(const MetaVarDesc* first, int n);
+  bool computeAPSP(
+      std::vector<Change>& xChanges, std::vector<Change>& yChanges);
+  void semanticBranching(const MetaVarDesc* first, int n,
+      std::vector<Change>& xChanges, std::vector<Change>& yChanges);
 
   /**
    * Performs clique detection to derive a minimum width.

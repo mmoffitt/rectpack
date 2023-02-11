@@ -59,6 +59,13 @@ MetaVariable* MetaFrame::assign(const MetaVarDesc* pDesc,
   return(&m_Assigned[pDesc]);
 }
 
+MetaVariable* MetaFrame::unassign(const MetaVarDesc* pDesc) {
+  m_Unassigned[pDesc] = m_Assigned[pDesc];
+  m_Unassigned[pDesc].assign(MetaDomain::UNASSIGNED);
+  m_Assigned.erase(pDesc);
+  return(&m_Unassigned[pDesc]);
+}
+
 bool MetaFrame::forwardChecking() {
   for(std::map<const MetaVarDesc*, MetaVariable>::iterator i =
 	m_Unassigned.begin(); i != m_Unassigned.end(); ++i) {

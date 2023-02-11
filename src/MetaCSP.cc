@@ -109,6 +109,7 @@ void MetaCSP::printRecentBest() const {
 
 bool MetaCSP::branchOn(MetaFrame::VarIter& i) {
   auto first = i->first;
+  MetaFrame* pCurrent = &m_vStack.back();
 
   /**
    * Dynamically break symmetry, if applicable.
@@ -127,6 +128,7 @@ bool MetaCSP::branchOn(MetaFrame::VarIter& i) {
    * Iterate over each possible value in the domain.
    */
 
+  std::vector<Change> xChangesGlobal, yChangesGlobal;
   for(std::vector<int>::const_iterator j = v.begin();
       j != v.end(); ++j) {
 
@@ -142,8 +144,6 @@ bool MetaCSP::branchOn(MetaFrame::VarIter& i) {
      * modifications.
      */
 
-    m_vStack.push_back(MetaFrame(m_vStack.back()));
-    MetaFrame* pCurrent = &m_vStack.back();
     pCurrent->assign(first, (MetaDomain::ValueT) *j);
 
     /**
@@ -151,8 +151,9 @@ bool MetaCSP::branchOn(MetaFrame::VarIter& i) {
      * cycles.
      */
 
+    std::vector<Change> xChangesLocal, yChangesLocal;
     if(*j == MetaDomain::ABOVE || *j == MetaDomain::BELOW)
-      pCurrent->m_vYMatrix.assign(first, *j);
+      pCurrent->m_vYMatrix.assign(first, *j, yChangesLocal);
 
     /**
      * @TODO Optimizations may be performed here, by focusing on
@@ -161,9 +162,9 @@ bool MetaCSP::branchOn(MetaFrame::VarIter& i) {
      */
 
     else
-      pCurrent->m_vXMatrix.assign(first, *j);
+      pCurrent->m_vXMatrix.assign(first, *j, xChangesLocal);
 
-    if(computeAPSP()) {
+    if(computeAPSP(xChangesLocal, yChangesLocal)) {
 
       /**
        * Subsume variables.
@@ -202,26 +203,32 @@ bool MetaCSP::branchOn(MetaFrame::VarIter& i) {
      * Restore the previous stack frame.
      */
     
-    m_vStack.pop_back();
-    semanticBranching(first, *j);
+    pCurrent->m_vXMatrix.restore(xChangesLocal);
+    pCurrent->m_vYMatrix.restore(yChangesLocal);
+    pCurrent->unassign(first);
+    semanticBranching(first, *j, xChangesGlobal, yChangesGlobal);
   }
+  pCurrent->m_vXMatrix.restore(xChangesGlobal);
+  pCurrent->m_vYMatrix.restore(yChangesGlobal);
   return(false);
 }
 
-void MetaCSP::semanticBranching(const MetaVarDesc* first, int n) {
+void MetaCSP::semanticBranching(const MetaVarDesc* first, int n,
+    std::vector<Change>& xChanges, std::vector<Change>& yChanges) {
   MetaFrame* pCurrent = &m_vStack.back();
   if(n == MetaDomain::LEFTOF || n == MetaDomain::RIGHTOF)
-    pCurrent->m_vXMatrix.negate(first, n);
+    pCurrent->m_vXMatrix.negate(first, n, xChanges);
   else
-    pCurrent->m_vYMatrix.negate(first, n);
+    pCurrent->m_vYMatrix.negate(first, n, yChanges);
 }
 
-bool MetaCSP::computeAPSP() {
+bool MetaCSP::computeAPSP(
+    std::vector<Change>& xChanges, std::vector<Change>& yChanges) {
   MetaFrame* pCurrent = &m_vStack.back();
-  pCurrent->m_vXMatrix.floydWarshall();
+  pCurrent->m_vXMatrix.floydWarshall(xChanges);
   if(pCurrent->m_vXMatrix.negativeCycles())
     return(false);
-  pCurrent->m_vYMatrix.floydWarshall();
+  pCurrent->m_vYMatrix.floydWarshall(yChanges);
   if(pCurrent->m_vYMatrix.negativeCycles())
     return(false);
   return(true);

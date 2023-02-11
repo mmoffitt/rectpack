@@ -27,6 +27,12 @@ class APSP;
 class MetaVarDesc;
 class Rectangle;
 
+struct Change {
+  size_t i;
+  size_t j;
+  Int v;
+};
+
 class APSP : public std::vector<std::vector<Int> >{
   friend std::ostream& operator<<(std::ostream& os, const APSP& rhs);
 
@@ -35,8 +41,8 @@ class APSP : public std::vector<std::vector<Int> >{
   APSP(const APSP& src);
   virtual ~APSP();
   void initialize(size_t nRectangles);
-  void assign(const MetaVarDesc* pDesc, int nValue);
-  void negate(const MetaVarDesc* pDesc, int nValue);
+  void assign(const MetaVarDesc* pDesc, int nValue, vector<Change>& changes);
+  void negate(const MetaVarDesc* pDesc, int nValue, vector<Change>& changes);
   Int minWidth(const MetaVarDesc* pDesc) const;
   Int minHeight(const MetaVarDesc* pDesc) const;
 
@@ -45,7 +51,7 @@ class APSP : public std::vector<std::vector<Int> >{
    * n^3 time.
    */
 
-  void floydWarshall();
+  void floydWarshall(vector<Change>& changes);
 
   /**
    * Updated weights going to and from k, so we will take n^2 time to
@@ -60,10 +66,11 @@ class APSP : public std::vector<std::vector<Int> >{
    */
 
   bool negativeCycles() const;
-  void update(const Rectangle* r1, const Rectangle* r2, Int n);
+  void update(const Rectangle* r1, const Rectangle* r2, Int n, vector<Change>& changes);
   size_t width(const Int& n) const;
   void columnWidths(std::vector<size_t>& v) const;
   void print() const;
+  void restore(vector<Change>& changes);
 };
 
 std::ostream& operator<<(std::ostream& os, const APSP& rhs);

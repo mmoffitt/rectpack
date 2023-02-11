@@ -49,6 +49,12 @@ class MetaFrame {
 		       MetaDomain::ValueT nValue);
 
   /**
+   * Restores the the appropriate meta variable into the unassigned set.
+   */
+
+  MetaVariable* unassign(const MetaVarDesc* pDesc);
+
+  /**
    * Performs forward checking on all unassigned variables, removing
    * invalid domain values.
    *

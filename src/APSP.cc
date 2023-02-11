@@ -53,16 +53,16 @@ void APSP::initialize(size_t nRectangles) {
     (*this)[nRectangles][i] = 0;
 }
 
-void APSP::floydWarshall() {
+void APSP::floydWarshall(vector<Change>& changes) {
   for(size_t k = 0; k < size(); ++k)
     for(size_t i = 0; i < size(); ++i)
       for(size_t j = 0; j < size(); ++j)
 	if(operator[](i)[k] < std::numeric_limits<Int>::max() &&
-	   operator[](k)[j] < std::numeric_limits<Int>::max())
-	  operator[](i)[j] =
-	    std::min(operator[](i)[j],
-		     operator[](i)[k] +
-		     operator[](k)[j]);
+	   operator[](k)[j] < std::numeric_limits<Int>::max()) {
+    if(operator[](i)[j] <= operator[](i)[k] + operator[](k)[j]) continue;
+    changes.push_back({.i = i, .j = j, .v = operator[](i)[j]});
+	  operator[](i)[j] = operator[](i)[k] + operator[](k)[j];
+     }
 }
 
 void APSP::floydWarshall(size_t k) {
@@ -84,28 +84,31 @@ bool APSP::negativeCycles() const {
 }
 
 void APSP::update(const Rectangle* r1,
-		  const Rectangle* r2, Int n) {
-  (*this)[r1->m_nID][r2->m_nID] =
-    std::min((*this)[r1->m_nID][r2->m_nID], n);
+		  const Rectangle* r2, Int n, vector<Change>& changes) {
+  if((*this)[r1->m_nID][r2->m_nID] <= n) return;
+  changes.push_back({.i = r1->m_nID,
+                     .j = r2->m_nID,
+                     .v = (*this)[r1->m_nID][r2->m_nID]});
+  (*this)[r1->m_nID][r2->m_nID] = n;
 }
 
-void APSP::assign(const MetaVarDesc* pDesc, int nValue) {
+void APSP::assign(const MetaVarDesc* pDesc, int nValue, vector<Change>& changes) {
   switch(nValue) {
   case MetaDomain::ABOVE:
     update(pDesc->m_pRect2, pDesc->m_pRect1,
-	   - (Int) pDesc->m_pRect2->m_nHeight);
+	   - (Int) pDesc->m_pRect2->m_nHeight, changes);
     break;
   case MetaDomain::RIGHTOF:
     update(pDesc->m_pRect2, pDesc->m_pRect1,
-	   - (Int) pDesc->m_pRect2->m_nWidth);
+	   - (Int) pDesc->m_pRect2->m_nWidth, changes);
     break;
   case MetaDomain::BELOW:
     update(pDesc->m_pRect1, pDesc->m_pRect2,
-	   - (Int) pDesc->m_pRect1->m_nHeight);
+	   - (Int) pDesc->m_pRect1->m_nHeight, changes);
     break;
   case MetaDomain::LEFTOF:
     update(pDesc->m_pRect1, pDesc->m_pRect2,
-	   - (Int) pDesc->m_pRect1->m_nWidth);
+	   - (Int) pDesc->m_pRect1->m_nWidth, changes);
     break;
   default:
     std::cout << "Oops, did you really mean to assign UNASSIGNED to the APSP matrix?"
@@ -115,23 +118,23 @@ void APSP::assign(const MetaVarDesc* pDesc, int nValue) {
   };
 }
 
-void APSP::negate(const MetaVarDesc* pDesc, int nValue) {
+void APSP::negate(const MetaVarDesc* pDesc, int nValue, vector<Change>& changes) {
   switch(nValue) {
   case MetaDomain::ABOVE:
     update(pDesc->m_pRect1, pDesc->m_pRect2,
-	   (Int) pDesc->m_pRect1->m_nHeight - 1);
+	   (Int) pDesc->m_pRect1->m_nHeight - 1, changes);
     break;
   case MetaDomain::RIGHTOF:
     update(pDesc->m_pRect1, pDesc->m_pRect2,
-	   (Int) pDesc->m_pRect1->m_nWidth - 1);
+	   (Int) pDesc->m_pRect1->m_nWidth - 1, changes);
     break;
   case MetaDomain::BELOW:
     update(pDesc->m_pRect2, pDesc->m_pRect1,
-	   (Int) pDesc->m_pRect2->m_nHeight - 1);
+	   (Int) pDesc->m_pRect2->m_nHeight - 1, changes);
     break;
   case MetaDomain::LEFTOF: // Assert 1 right or on the same level as 2.
     update(pDesc->m_pRect2, pDesc->m_pRect1,
-	   (Int) pDesc->m_pRect2->m_nWidth - 1);
+	   (Int) pDesc->m_pRect2->m_nWidth - 1, changes);
     break;
   default:
     std::cout << "Oops, did you really mean to assign UNASSIGNED to the APSP matrix?"
@@ -215,4 +218,11 @@ void APSP::columnWidths(std::vector<size_t>& v) const {
 
 void APSP::print() const {
   std::cout << *this << std::flush;
+}
+
+void APSP::restore(vector<Change>& changes) {
+  while(!changes.empty()) {
+    (*this)[changes.back().i][changes.back().j] = changes.back().v;
+    changes.pop_back();
+  }
 }
