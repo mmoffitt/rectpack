@@ -96,8 +96,10 @@ void MetaCSP::printRecentBest() const {
     v.rotate();
   if(!v.verify())
     std::cout << "  Error: Constraints not satisfied." << std::endl;
+/*
   ag.draw(m_pParams, v);
   ag.print();
+*/
   std::cout << "  Rectangles were placed in these (x,y) locations:"
 	    << std::endl;
   v *= m_pParams->m_vInstance.m_nScale;
