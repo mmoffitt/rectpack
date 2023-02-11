@@ -92,19 +92,19 @@ void APSP::update(const Rectangle* r1,
 void APSP::assign(const MetaVarDesc* pDesc, int nValue) {
   switch(nValue) {
   case MetaDomain::ABOVE:
-    update(pDesc->m_pRect1, pDesc->m_pRect2,
+    update(pDesc->m_pRect2, pDesc->m_pRect1,
 	   - (Int) pDesc->m_pRect2->m_nHeight);
     break;
   case MetaDomain::RIGHTOF:
-    update(pDesc->m_pRect1, pDesc->m_pRect2,
+    update(pDesc->m_pRect2, pDesc->m_pRect1,
 	   - (Int) pDesc->m_pRect2->m_nWidth);
     break;
   case MetaDomain::BELOW:
-    update(pDesc->m_pRect2, pDesc->m_pRect1,
+    update(pDesc->m_pRect1, pDesc->m_pRect2,
 	   - (Int) pDesc->m_pRect1->m_nHeight);
     break;
   case MetaDomain::LEFTOF:
-    update(pDesc->m_pRect2, pDesc->m_pRect1,
+    update(pDesc->m_pRect1, pDesc->m_pRect2,
 	   - (Int) pDesc->m_pRect1->m_nWidth);
     break;
   default:
