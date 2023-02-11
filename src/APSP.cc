@@ -118,19 +118,19 @@ void APSP::assign(const MetaVarDesc* pDesc, int nValue) {
 void APSP::negate(const MetaVarDesc* pDesc, int nValue) {
   switch(nValue) {
   case MetaDomain::ABOVE:
-    update(pDesc->m_pRect2, pDesc->m_pRect1,
+    update(pDesc->m_pRect1, pDesc->m_pRect2,
 	   (Int) pDesc->m_pRect1->m_nHeight - 1);
     break;
   case MetaDomain::RIGHTOF:
-    update(pDesc->m_pRect2, pDesc->m_pRect1,
+    update(pDesc->m_pRect1, pDesc->m_pRect2,
 	   (Int) pDesc->m_pRect1->m_nWidth - 1);
     break;
   case MetaDomain::BELOW:
-    update(pDesc->m_pRect1, pDesc->m_pRect2,
+    update(pDesc->m_pRect2, pDesc->m_pRect1,
 	   (Int) pDesc->m_pRect2->m_nHeight - 1);
     break;
   case MetaDomain::LEFTOF: // Assert 1 right or on the same level as 2.
-    update(pDesc->m_pRect1, pDesc->m_pRect2,
+    update(pDesc->m_pRect2, pDesc->m_pRect1,
 	   (Int) pDesc->m_pRect2->m_nWidth - 1);
     break;
   default:
