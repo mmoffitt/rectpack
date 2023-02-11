@@ -64,13 +64,13 @@ bool MetaFrame::forwardChecking() {
 	m_Unassigned.begin(); i != m_Unassigned.end(); ++i) {
     const Rectangle* r1(i->first->m_pRect1);
     const Rectangle* r2(i->first->m_pRect2);
-    if(m_vXMatrix[r1->m_nID][r2->m_nID] < (Int) r1->m_nWidth)
+    if(m_vXMatrix[r2->m_nID][r1->m_nID] < (Int) r1->m_nWidth)
       i->second.m_Domain.erase(MetaDomain::LEFTOF);
-    if(m_vYMatrix[r1->m_nID][r2->m_nID] < (Int) r1->m_nHeight)
+    if(m_vYMatrix[r2->m_nID][r1->m_nID] < (Int) r1->m_nHeight)
       i->second.m_Domain.erase(MetaDomain::BELOW);
-    if(m_vXMatrix[r2->m_nID][r1->m_nID] < (Int) r2->m_nWidth)
+    if(m_vXMatrix[r1->m_nID][r2->m_nID] < (Int) r2->m_nWidth)
       i->second.m_Domain.erase(MetaDomain::RIGHTOF);
-    if(m_vYMatrix[r2->m_nID][r1->m_nID] < (Int) r2->m_nHeight)
+    if(m_vYMatrix[r1->m_nID][r2->m_nID] < (Int) r2->m_nHeight)
       i->second.m_Domain.erase(MetaDomain::ABOVE);
     if(i->second.m_Domain.empty())
       return(false);
@@ -97,25 +97,25 @@ bool MetaFrame::forwardCheckBounds(const Solution& s) {
     case MetaDomain::LEFTOF:
       b.m_nWidth =
 	std::max(b.m_nWidth,
-		 (UInt) (- m_vXMatrix[r1->m_nID][r2->m_nID] +
+		 (UInt) (- m_vXMatrix[r2->m_nID][r1->m_nID] +
 			 r2->m_nWidth));
       break;
     case MetaDomain::RIGHTOF:
       b.m_nWidth =
 	std::max(b.m_nWidth,
-		 (UInt) (- m_vXMatrix[r2->m_nID][r1->m_nID] +
+		 (UInt) (- m_vXMatrix[r1->m_nID][r2->m_nID] +
 			 r1->m_nWidth));
       break;
     case MetaDomain::BELOW:
       b.m_nHeight =
 	std::max(b.m_nHeight,
-		 (UInt) (- m_vYMatrix[r1->m_nID][r2->m_nID] +
+		 (UInt) (- m_vYMatrix[r2->m_nID][r1->m_nID] +
 			 r2->m_nHeight));
       break;
     case MetaDomain::ABOVE:
       b.m_nHeight =
 	std::max(b.m_nHeight,
-		 (UInt) (- m_vYMatrix[r2->m_nID][r1->m_nID] +
+		 (UInt) (- m_vYMatrix[r1->m_nID][r2->m_nID] +
 			 r1->m_nHeight));
       break;
     default:
@@ -180,7 +180,7 @@ void MetaFrame::subsumeVariables() {
     
     const Rectangle* r1(i->first->m_pRect1);
     const Rectangle* r2(i->first->m_pRect2);
-    if(m_vXMatrix[r2->m_nID][r1->m_nID] <= (Int) r1->m_nWidth) {
+    if(m_vXMatrix[r1->m_nID][r2->m_nID] <= - (Int) r1->m_nWidth) {
       lErase.push_back(i);
       i->second.assign(MetaDomain::LEFTOF);
       continue;
@@ -190,7 +190,7 @@ void MetaFrame::subsumeVariables() {
      * Is the RIGHTOF relation implied?
      */
 
-    if(m_vXMatrix[r1->m_nID][r2->m_nID] <= - (Int) r2->m_nWidth) {
+    if(m_vXMatrix[r2->m_nID][r1->m_nID] <= - (Int) r2->m_nWidth) {
       lErase.push_back(i);
       i->second.assign(MetaDomain::RIGHTOF);
       continue;
@@ -200,7 +200,7 @@ void MetaFrame::subsumeVariables() {
      * Is the BELOW relation implied?
      */
 
-    if(m_vYMatrix[r2->m_nID][r1->m_nID] <= - (Int) r1->m_nHeight) {
+    if(m_vYMatrix[r1->m_nID][r2->m_nID] <= - (Int) r1->m_nHeight) {
       lErase.push_back(i);
       i->second.assign(MetaDomain::BELOW);
       continue;
@@ -210,7 +210,7 @@ void MetaFrame::subsumeVariables() {
      * Is the ABOVE relation implied?
      */
 
-    if(m_vXMatrix[r1->m_nID][r2->m_nID] <= - (Int) r2->m_nHeight) {
+    if(m_vXMatrix[r2->m_nID][r1->m_nID] <= - (Int) r2->m_nHeight) {
       lErase.push_back(i);
       i->second.assign(MetaDomain::ABOVE);
       continue;
