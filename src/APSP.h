@@ -54,13 +54,6 @@ class APSP : public std::vector<std::vector<Int> >{
   void floydWarshall(size_t u, size_t v, vector<Change>& changes);
 
   /**
-   * Updated weights going to and from k, so we will take n^2 time to
-   * update any paths necessary.
-   */
-
-  void floydWarshall(size_t k);
-
-  /**
    * Checks the diagonal of the matrix to see if there exists any
    * negative cycles.
    */

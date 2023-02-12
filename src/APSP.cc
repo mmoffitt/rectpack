@@ -64,17 +64,6 @@ void APSP::floydWarshall(size_t u, size_t v, vector<Change>& changes) {
      }
 }
 
-void APSP::floydWarshall(size_t k) {
-  for(size_t i = 0; i < size(); ++i)
-    for(size_t j = 0; j < size(); ++j)
-      if(operator[](i)[k] < std::numeric_limits<Int>::max() &&
-	 operator[](k)[j] < std::numeric_limits<Int>::max())
-	operator[](i)[j] =
-	  std::min(operator[](i)[j],
-		   operator[](i)[k] +
-		   operator[](k)[j]);
-}
-
 bool APSP::negativeCycles() const {
   for(size_t i = 0; i < size(); ++i)
     if(operator[](i)[i] < 0)
