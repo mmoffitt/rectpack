@@ -161,7 +161,9 @@ bool MetaCSP::branchOn(MetaFrame::VarIter& i) {
      * recomputing the entire matrix.
      */
 
-    if(computeAPSP(yChangesLocal)) {
+    size_t node_u = (*j == MetaDomain::ABOVE ? first->m_pRect2 : first->m_pRect1)->m_nID;
+    size_t node_v = (*j == MetaDomain::ABOVE ? first->m_pRect1 : first->m_pRect2)->m_nID;
+    if(computeAPSP(node_u, node_v, yChangesLocal)) {
 
       /**
        * Subsume variables.
@@ -214,9 +216,9 @@ void MetaCSP::semanticBranching(const MetaVarDesc* first, int n,
   pCurrent->m_vYMatrix.negate(first, n, yChanges);
 }
 
-bool MetaCSP::computeAPSP(std::vector<Change>& yChanges) {
+bool MetaCSP::computeAPSP(size_t u, size_t v, std::vector<Change>& yChanges) {
   MetaFrame* pCurrent = &m_vStack.back();
-  pCurrent->m_vYMatrix.floydWarshall(yChanges);
+  pCurrent->m_vYMatrix.floydWarshall(u, v, yChanges);
   if(pCurrent->m_vYMatrix.negativeCycles())
     return(false);
   return(true);

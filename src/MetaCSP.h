@@ -146,7 +146,7 @@ class MetaCSP : public Packer {
    */
 
   void valueOrdering(MetaFrame::VarIter& i, std::vector<int>& v) const;
-  bool computeAPSP(std::vector<Change>& yChanges);
+  bool computeAPSP(size_t u, size_t v, std::vector<Change>& yChanges);
   void semanticBranching(const MetaVarDesc* first, int n,
       std::vector<Change>& yChanges);
 

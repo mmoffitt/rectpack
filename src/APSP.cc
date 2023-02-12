@@ -53,15 +53,14 @@ void APSP::initialize(size_t nRectangles) {
     (*this)[nRectangles][i] = 0;
 }
 
-void APSP::floydWarshall(vector<Change>& changes) {
-  for(size_t k = 0; k < size(); ++k)
+void APSP::floydWarshall(size_t u, size_t v, vector<Change>& changes) {
     for(size_t i = 0; i < size(); ++i)
       for(size_t j = 0; j < size(); ++j)
-	if(operator[](i)[k] < std::numeric_limits<Int>::max() &&
-	   operator[](k)[j] < std::numeric_limits<Int>::max()) {
-    if(operator[](i)[j] <= operator[](i)[k] + operator[](k)[j]) continue;
+	if(operator[](i)[u] < std::numeric_limits<Int>::max() &&
+	   operator[](v)[j] < std::numeric_limits<Int>::max()) {
+    if(operator[](i)[j] <= operator[](i)[u] + operator[](u)[v] + operator[](v)[j]) continue;
     changes.push_back({.i = i, .j = j, .v = operator[](i)[j]});
-	  operator[](i)[j] = operator[](i)[k] + operator[](k)[j];
+	  operator[](i)[j] = operator[](i)[u] + operator[](u)[v] + operator[](v)[j];
      }
 }
 

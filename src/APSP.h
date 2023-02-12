@@ -48,10 +48,10 @@ class APSP : public std::vector<std::vector<Int> >{
 
   /**
    * Takes the current matrix and computes all pairs shortest paths in
-   * n^3 time.
+   * n^2 time.
    */
 
-  void floydWarshall(vector<Change>& changes);
+  void floydWarshall(size_t u, size_t v, vector<Change>& changes);
 
   /**
    * Updated weights going to and from k, so we will take n^2 time to
