@@ -151,7 +151,7 @@ bool MetaCSP::branchOn(MetaFrame::VarIter& i) {
      * cycles.
      */
 
-    std::vector<Change> xChangesLocal, yChangesLocal;
+    std::vector<Change> yChangesLocal;
     if(*j == MetaDomain::ABOVE || *j == MetaDomain::BELOW)
       pCurrent->m_vYMatrix.assign(first, *j, yChangesLocal);
 
@@ -161,10 +161,7 @@ bool MetaCSP::branchOn(MetaFrame::VarIter& i) {
      * recomputing the entire matrix.
      */
 
-    else
-      pCurrent->m_vXMatrix.assign(first, *j, xChangesLocal);
-
-    if(computeAPSP(xChangesLocal, yChangesLocal)) {
+    if(computeAPSP(yChangesLocal)) {
 
       /**
        * Subsume variables.
@@ -203,31 +200,22 @@ bool MetaCSP::branchOn(MetaFrame::VarIter& i) {
      * Restore the previous stack frame.
      */
     
-    pCurrent->m_vXMatrix.restore(xChangesLocal);
     pCurrent->m_vYMatrix.restore(yChangesLocal);
     pCurrent->unassign(first);
-    semanticBranching(first, *j, xChangesGlobal, yChangesGlobal);
+    semanticBranching(first, *j, yChangesGlobal);
   }
-  pCurrent->m_vXMatrix.restore(xChangesGlobal);
   pCurrent->m_vYMatrix.restore(yChangesGlobal);
   return(false);
 }
 
 void MetaCSP::semanticBranching(const MetaVarDesc* first, int n,
-    std::vector<Change>& xChanges, std::vector<Change>& yChanges) {
+    std::vector<Change>& yChanges) {
   MetaFrame* pCurrent = &m_vStack.back();
-  if(n == MetaDomain::LEFTOF || n == MetaDomain::RIGHTOF)
-    pCurrent->m_vXMatrix.negate(first, n, xChanges);
-  else
-    pCurrent->m_vYMatrix.negate(first, n, yChanges);
+  pCurrent->m_vYMatrix.negate(first, n, yChanges);
 }
 
-bool MetaCSP::computeAPSP(
-    std::vector<Change>& xChanges, std::vector<Change>& yChanges) {
+bool MetaCSP::computeAPSP(std::vector<Change>& yChanges) {
   MetaFrame* pCurrent = &m_vStack.back();
-  pCurrent->m_vXMatrix.floydWarshall(xChanges);
-  if(pCurrent->m_vXMatrix.negativeCycles())
-    return(false);
   pCurrent->m_vYMatrix.floydWarshall(yChanges);
   if(pCurrent->m_vYMatrix.negativeCycles())
     return(false);
@@ -570,14 +558,6 @@ void MetaCSP::valueOrdering(MetaFrame::VarIter& i,
       j != i->second.m_Domain.end(); ++j) {
     Int nSlack;
     switch(*j) {
-    case MetaDomain::LEFTOF:
-      nSlack = pCurrent->m_vXMatrix[r1->m_nID][r2->m_nID] -
-	r1->m_nWidth;
-      break;
-    case MetaDomain::RIGHTOF:
-      nSlack = pCurrent->m_vXMatrix[r2->m_nID][r1->m_nID] -
-	r2->m_nWidth;
-      break;
     case MetaDomain::BELOW:
       nSlack = pCurrent->m_vYMatrix[r1->m_nID][r2->m_nID] -
 	r1->m_nHeight;
@@ -603,136 +583,6 @@ void MetaCSP::valueOrdering(MetaFrame::VarIter& i,
     v.push_back(v2[i].first);
 }
 
-void MetaCSP::get2(Placements& v) const {
-
-  /**
-   * Find all rectangle that set the width of the bounding box, and
-   * enqueue their partners into the queue. Then we scan for
-   * rectangles whose width is equal to the width of the bounding
-   * box. They immediately get assigned x=0.
-   */
-
-  const MetaFrame* pCurrent = &m_vStack.back();
-  std::vector<bool> vAssigned(m_vRects.size(), false);
-  std::vector<UInt> vX(m_vRects.size(), 0);
-  std::deque<size_t> q;
-  for(std::vector<std::vector<MetaVarDesc> >::const_iterator i =
-	m_vVariableDescs.begin(); i != m_vVariableDescs.end(); ++i)
-    for(std::vector<MetaVarDesc>::const_iterator j = i->begin();
-	j != i->end(); ++j) {
-      const MetaVarDesc* pDesc = &(*j);
-      Int nWidth = pCurrent->m_vXMatrix.minWidth(pDesc);
-      if(nWidth == (Int) pCurrent->m_nMinWidth) {
-	const MetaVariable* pVar(NULL);
-	MetaFrame::ConstVarIter k = pCurrent->m_Assigned.find(pDesc);
-	if(k != pCurrent->m_Assigned.end())
-	  pVar = &k->second;
-	if(pVar->m_nValue == MetaDomain::ABOVE ||
-	   pVar->m_nValue == MetaDomain::BELOW)
-	  continue;
-	vAssigned[pDesc->m_pRect1->m_nID] = true;
-	vAssigned[pDesc->m_pRect2->m_nID] = true;
-	q.push_back(pDesc->m_pRect1->m_nID);
-	q.push_back(pDesc->m_pRect2->m_nID);
-	if(pVar->m_nValue == MetaDomain::LEFTOF) {
-	  vX[pDesc->m_pRect1->m_nID] = 0;
-	  vX[pDesc->m_pRect2->m_nID] =
-	    pCurrent->m_nMinWidth - pDesc->m_pRect2->m_nWidth;
-	}
-	else if(pVar->m_nValue == MetaDomain::RIGHTOF) {
-	  vX[pDesc->m_pRect2->m_nID] = 0;
-	  vX[pDesc->m_pRect1->m_nID] =
-	    pCurrent->m_nMinWidth - pDesc->m_pRect1->m_nWidth;
-	}
-      }
-    }
-  for(RectArray::const_iterator i = m_vRects.begin();
-      i != m_vRects.end(); ++i)
-    if(i->m_nWidth == pCurrent->m_nMinWidth) {
-      vX[i->m_nID] = 0;
-      vAssigned[i->m_nID] = true;
-    }
-  while(!q.empty()) {
-    size_t i = q.back();
-    q.pop_back();
-    for(size_t j = 0; j < i; ++j) {
-      if(vAssigned[j]) continue;
-      Int nWidth = pCurrent->m_vXMatrix.minWidth(&m_vVariableDescs[i][j]);
-      if(nWidth > 0)
-	vX[j] = (UInt) nWidth - m_vRectPtrs[j]->m_nWidth;
-      vAssigned[j] = true;
-      q.push_back(j);
-    }
-  }
-
-  /**
-   * Now assign the heights.
-   */
-
-  std::fill(vAssigned.begin(), vAssigned.end(), false);
-  std::vector<UInt> vY(m_vRects.size(), 0);
-  for(std::vector<std::vector<MetaVarDesc> >::const_iterator i =
-	m_vVariableDescs.begin(); i != m_vVariableDescs.end(); ++i)
-    for(std::vector<MetaVarDesc>::const_iterator j = i->begin();
-	j != i->end(); ++j) {
-      const MetaVarDesc* pDesc = &(*j);
-      Int nHeight = pCurrent->m_vYMatrix.minHeight(pDesc);
-      if(nHeight == (Int) pCurrent->m_nMinHeight) {
-	const MetaVariable* pVar(NULL);
-	MetaFrame::ConstVarIter k = pCurrent->m_Assigned.find(pDesc);
-	if(k != pCurrent->m_Assigned.end())
-	  pVar = &k->second;
-	if(pVar->m_nValue == MetaDomain::LEFTOF ||
-	   pVar->m_nValue == MetaDomain::RIGHTOF)
-	  continue;
-	vAssigned[pDesc->m_pRect1->m_nID] = true;
-	vAssigned[pDesc->m_pRect2->m_nID] = true;
-	q.push_back(pDesc->m_pRect1->m_nID);
-	q.push_back(pDesc->m_pRect2->m_nID);
-	if(pVar->m_nValue == MetaDomain::BELOW) {
-	  vY[pDesc->m_pRect1->m_nID] = 0;
-	  vY[pDesc->m_pRect2->m_nID] =
-	    pCurrent->m_nMinHeight - pDesc->m_pRect2->m_nHeight;
-	}
-	else if(pVar->m_nValue == MetaDomain::ABOVE) {
-	  vY[pDesc->m_pRect2->m_nID] = 0;
-	  vY[pDesc->m_pRect1->m_nID] =
-	    pCurrent->m_nMinHeight - pDesc->m_pRect1->m_nHeight;
-	}
-      }
-    }
-  for(RectArray::const_iterator i = m_vRects.begin();
-      i != m_vRects.end(); ++i)
-    if(i->m_nHeight == pCurrent->m_nMinHeight) {
-      vY[i->m_nID] = 0;
-      vAssigned[i->m_nID] = true;
-    }
-  while(!q.empty()) {
-    size_t i = q.back();
-    q.pop_back();
-    for(size_t j = 0; j < i; ++j) {
-      if(vAssigned[j]) continue;
-      Int nHeight = pCurrent->m_vYMatrix.minHeight(&m_vVariableDescs[i][j]);
-      if(nHeight > 0)
-	vY[j] = (UInt) nHeight - m_vRectPtrs[j]->m_nHeight;
-      vAssigned[j] = true;
-      q.push_back(j);
-    }
-  }
-
-  /**
-   * Construct the placement return vector.
-   */
-
-  v.resize(m_vRectPtrs.size());
-  v.m_Box = m_Box;
-  for(size_t i = 0; i < v.size(); ++i) {
-    v[i].m_Dims = m_vRects[i];
-    v[i].m_nLocation.initialize(MpqWrapper(vX[i], (UInt) 1),
-				MpqWrapper(vY[i], (UInt) 1));
-  }
-}
-
 Int MetaCSP::calcHeight(MetaFrame* pCurrent) const {
   Int height = 0;
   for(size_t i = 0; i < m_vRects.size(); ++i)
@@ -753,18 +603,6 @@ void MetaCSP::get(Placements& v) const {
   const MetaFrame* pCurrent = &m_vStack.back();
   std::vector<bool> vAssigned(m_vRects.size(), false);
   std::vector<Int> vX(m_vRects.size(), 0);
-  std::deque<size_t> q;
-  for(std::vector<std::vector<MetaVarDesc> >::const_iterator i =
-	m_vVariableDescs.begin(); i != m_vVariableDescs.end(); ++i)
-    for(std::vector<MetaVarDesc>::const_iterator j = i->begin();
-	j != i->end(); ++j) {
-      const MetaVarDesc* pDesc = &(*j);
-      vX[pDesc->m_pRect1->m_nID] =
-	std::min(vX[pDesc->m_pRect1->m_nID],
-		 pCurrent->m_vXMatrix
-		 [pDesc->m_pRect1->m_nID]
-		 [pDesc->m_pRect2->m_nID]);
-    }
   for(size_t i = 0; i < vX.size(); ++i)
     vX[i] = m_vRects[i].m_nFixX;
 
@@ -774,17 +612,6 @@ void MetaCSP::get(Placements& v) const {
 
   std::fill(vAssigned.begin(), vAssigned.end(), false);
   std::vector<Int> vY(m_vRects.size(), 0);
-  for(std::vector<std::vector<MetaVarDesc> >::const_iterator i =
-	m_vVariableDescs.begin(); i != m_vVariableDescs.end(); ++i)
-    for(std::vector<MetaVarDesc>::const_iterator j = i->begin();
-	j != i->end(); ++j) {
-      const MetaVarDesc* pDesc = &(*j);
-      vY[pDesc->m_pRect1->m_nID] =
-	std::min(vY[pDesc->m_pRect1->m_nID],
-		 pCurrent->m_vYMatrix
-		 [pDesc->m_pRect1->m_nID]
-		 [pDesc->m_pRect2->m_nID]);
-    }
   for(size_t i = 0; i < vY.size(); ++i)
     vY[i] = -pCurrent->m_vYMatrix[m_vRects.size()][i];
 

@@ -100,7 +100,6 @@ class MetaCSP : public Packer {
    */
 
   virtual void get(Placements& v) const;
-  void get2(Placements& v) const;
   bool allAssigned() const;
 
   /**
@@ -147,10 +146,9 @@ class MetaCSP : public Packer {
    */
 
   void valueOrdering(MetaFrame::VarIter& i, std::vector<int>& v) const;
-  bool computeAPSP(
-      std::vector<Change>& xChanges, std::vector<Change>& yChanges);
+  bool computeAPSP(std::vector<Change>& yChanges);
   void semanticBranching(const MetaVarDesc* first, int n,
-      std::vector<Change>& xChanges, std::vector<Change>& yChanges);
+      std::vector<Change>& yChanges);
 
   /**
    * Performs clique detection to derive a minimum width.

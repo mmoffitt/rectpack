@@ -110,7 +110,6 @@ class MetaFrame {
    */
 
   std::map<const MetaVarDesc*, MetaVariable> m_Unassigned;
-  APSP m_vXMatrix;
   APSP m_vYMatrix;
 
   UInt m_nMinWidth;

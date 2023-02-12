@@ -31,7 +31,6 @@ MetaFrame::MetaFrame() :
 MetaFrame::MetaFrame(const MetaFrame& src) :
   m_Assigned(src.m_Assigned),
   m_Unassigned(src.m_Unassigned),
-  m_vXMatrix(src.m_vXMatrix),
   m_vYMatrix(src.m_vYMatrix),
   m_nMinWidth(0),
   m_nMinHeight(0),
@@ -43,7 +42,6 @@ MetaFrame::~MetaFrame() {
 }
 
 void MetaFrame::initialize(const std::vector<std::vector<MetaVarDesc> >& vVars) {
-  m_vXMatrix.initialize(vVars.size());
   m_vYMatrix.initialize(vVars.size());
   for(size_t i = 0; i < vVars.size(); ++i)
     for(size_t j = 0; j < i; ++j)
@@ -71,12 +69,8 @@ bool MetaFrame::forwardChecking() {
 	m_Unassigned.begin(); i != m_Unassigned.end(); ++i) {
     const Rectangle* r1(i->first->m_pRect1);
     const Rectangle* r2(i->first->m_pRect2);
-    if(m_vXMatrix[r2->m_nID][r1->m_nID] < (Int) r1->m_nWidth)
-      i->second.m_Domain.erase(MetaDomain::LEFTOF);
     if(m_vYMatrix[r2->m_nID][r1->m_nID] < (Int) r1->m_nHeight)
       i->second.m_Domain.erase(MetaDomain::BELOW);
-    if(m_vXMatrix[r1->m_nID][r2->m_nID] < (Int) r2->m_nWidth)
-      i->second.m_Domain.erase(MetaDomain::RIGHTOF);
     if(m_vYMatrix[r1->m_nID][r2->m_nID] < (Int) r2->m_nHeight)
       i->second.m_Domain.erase(MetaDomain::ABOVE);
     if(i->second.m_Domain.empty())
@@ -101,18 +95,6 @@ bool MetaFrame::forwardCheckBounds(const Solution& s) {
     const Rectangle* r1(i->first->m_pRect1);
     const Rectangle* r2(i->first->m_pRect2);
     switch(i->second.m_nValue) {
-    case MetaDomain::LEFTOF:
-      b.m_nWidth =
-	std::max(b.m_nWidth,
-		 (UInt) (- m_vXMatrix[r2->m_nID][r1->m_nID] +
-			 r2->m_nWidth));
-      break;
-    case MetaDomain::RIGHTOF:
-      b.m_nWidth =
-	std::max(b.m_nWidth,
-		 (UInt) (- m_vXMatrix[r1->m_nID][r2->m_nID] +
-			 r1->m_nWidth));
-      break;
     case MetaDomain::BELOW:
       b.m_nHeight =
 	std::max(b.m_nHeight,
@@ -181,27 +163,8 @@ void MetaFrame::subsumeVariables() {
 	m_Unassigned.begin();
       i != m_Unassigned.end(); ++i) {
 
-    /**
-     * Is the LEFTOF relation implied?
-     */
-    
     const Rectangle* r1(i->first->m_pRect1);
     const Rectangle* r2(i->first->m_pRect2);
-    if(m_vXMatrix[r1->m_nID][r2->m_nID] <= - (Int) r1->m_nWidth) {
-      lErase.push_back(i);
-      i->second.assign(MetaDomain::LEFTOF);
-      continue;
-    }
-
-    /**
-     * Is the RIGHTOF relation implied?
-     */
-
-    if(m_vXMatrix[r2->m_nID][r1->m_nID] <= - (Int) r2->m_nWidth) {
-      lErase.push_back(i);
-      i->second.assign(MetaDomain::RIGHTOF);
-      continue;
-    }
 
     /**
      * Is the BELOW relation implied?
@@ -250,8 +213,6 @@ void MetaFrame::print() const {
       ++i)
     std::cout << "    " << i->second << std::endl;
   std::cout << std::endl << std::endl
-	    << "Horizontal APSP matrix:" << std::endl
-	    << m_vXMatrix << std::endl
 	    << "Vertical APSP matrix:" << std::endl
 	    << m_vYMatrix << std::endl
 	    << "Min=" << m_nMinWidth << 'x' << m_nMinHeight << ", "
