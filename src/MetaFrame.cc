@@ -217,7 +217,7 @@ void MetaFrame::subsumeVariables() {
      * Is the ABOVE relation implied?
      */
 
-    if(m_vXMatrix[r2->m_nID][r1->m_nID] <= - (Int) r2->m_nHeight) {
+    if(m_vYMatrix[r2->m_nID][r1->m_nID] <= - (Int) r2->m_nHeight) {
       lErase.push_back(i);
       i->second.assign(MetaDomain::ABOVE);
       continue;
