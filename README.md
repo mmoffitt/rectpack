@@ -24,3 +24,31 @@ Reference
 * 2012: [Optimal Rectangle Packing: An Absolute Placement Approach](http://www.jair.org/media/3735/live-3735-6794-jair.pdf)
 * [Richard E. Korf homepage](http://www.cs.ucla.edu/~korf/)
 * [Eric Huang homepage](http://www.erichuang.net/)
+
+static memory allocation
+========================
+
+When using this code for static memory allocation, first create a problem file (such as **problem.csv**) in the following format:
+
+```
+buffer_id,start,end,offset,size,alignment
+1,0,20,0,4,1
+2,9,20,0,4,1
+3,0,8,0,4,1
+4,3,8,0,4,1
+5,0,2,0,4,1
+```
+
+To invoke the **CSP** solver, execute this command:
+
+```
+release/rectpack -2 d -b 0 -o 1 -w 5 -i problem.csv -B 0x12
+```
+
+To invoke the **meta-CSP** solver, execute this command:
+
+```
+release/rectpack -2 d -b 0 -o 1 -w 6 -i problem.csv -B 0x12
+```
+
+(the program will automatically calculate grid width, hence the '0' in the above box dimensions)
